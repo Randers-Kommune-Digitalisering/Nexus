@@ -4,22 +4,23 @@ import requests
 from typing import Dict, Tuple
 
 from requests.auth import HTTPBasicAuth
-from base_api_client import BaseAPIClient
+from auth_header_api_client import APIClientWithAuthHeaders
 from utils.config import KP_URL, BROWSERLESS_URL, BROWSERLESS_CLIENT_ID, BROWSERLESS_CLIENT_SECRET
 
 logger = logging.getLogger(__name__)
 
 
-class KPAPIClient(BaseAPIClient):
+class KPAPIClient(APIClientWithAuthHeaders):
     _client_cache: Dict[Tuple[str, str], 'KPAPIClient'] = {}
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, timeout=180):
         super().__init__(KP_URL)
         self.username = username
         self.password = password
         self.session_cookie = None
         self.auth_attempted = False
         self.is_fetching_token = False
+        self.timeout = timeout
 
     @classmethod
     def get_client(cls, username, password):
@@ -138,10 +139,11 @@ class KPAPIClient(BaseAPIClient):
         except Exception as e:
             logger.error(e)
             self.is_fetching_token = False
+            self.session_cookie = None
             return None
 
     def authenticate(self):
-        timeout = time.time() + 180   # 3 minutes timeout
+        timeout = time.time() + self.timeout
         while self.is_fetching_token:
             if time.time() > timeout:
                 break
@@ -150,15 +152,9 @@ class KPAPIClient(BaseAPIClient):
         return self.request_session_token()
 
     def reauthenticate(self):
-        if self.is_fetching_token:
-            timeout = time.time() + 180   # 3 minutes timeout
-            while self.is_fetching_token:
-                if time.time() > timeout:
-                    break
-            return self.session_cookie
         if not self.auth_attempted:
             self.auth_attempted = True
-            auth = self.request_session_token()
+            auth = self.authenticate()
             if auth:
                 return auth
         else:
@@ -168,13 +164,16 @@ class KPAPIClient(BaseAPIClient):
 
     def get_auth_headers(self):
         session_cookie = self.authenticate()
-        headers = {"Cookie": f"JSESSIONID={session_cookie}"}
-        return headers
+        if session_cookie:
+            return {"Cookie": f"JSESSIONID={session_cookie}"}
 
     def _make_request(self, method, path, **kwargs):
         # Override _make_request to handle specific behavior for KPAPIClient
         try:
             headers = self.get_auth_headers()
+            if not headers:
+                logger.error("Failed to get auth headers")
+                return None
 
             if path.startswith("http://") or path.startswith("https://"):
                 url = path
