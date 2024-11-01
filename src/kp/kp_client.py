@@ -152,20 +152,14 @@ class KPAPIClient(APIClientWithAuthHeaders):
         return self.request_session_token()
 
     def reauthenticate(self):
-        if self.is_fetching_token:  # If is fetching token, wait
-            timeout = time.time() + 180   # 3 minutes timeout
-            while self.is_fetching_token:
-                if time.time() > timeout:
-                    break
-            return self.session_cookie  # Return token after fetching
-
-        if not self.auth_attempted:  # If no attempt to reauthenticate has been made yet, attempt to fetch token
+        if not self.auth_attempted:
             self.auth_attempted = True
-            auth = self.request_session_token()  # Fetch token
-            if auth:  # If token is fetched successfully
-                return auth  # Return token
-
-        logger.error("Fetching new session token failed.")
+            auth = self.authenticate()
+            if auth:
+                return auth
+        else:
+            self.auth_attempted = False
+            logger.error("Fetching new session token failed.")
         return False
 
     def get_auth_headers(self):
