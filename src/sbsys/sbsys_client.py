@@ -2,14 +2,14 @@ import logging
 import time
 import requests
 from typing import Dict, Tuple
-from base_api_client import BaseAPIClient
+from auth_header_api_client import APIClientWithAuthHeaders
 from utils.config import SBSIP_URL
 
 logger = logging.getLogger(__name__)
 
 
 # Sbsys Api Client
-class SbsysAPIClient(BaseAPIClient):
+class SbsysAPIClient(APIClientWithAuthHeaders):
     _client_cache: Dict[Tuple[str, str, str, str], 'SbsysAPIClient'] = {}
 
     def __init__(self, client_id, client_secret, username, password, url):
@@ -57,19 +57,17 @@ class SbsysAPIClient(BaseAPIClient):
             logger.error(e)
             return None
 
-    def authenticate(self):
-        if self.access_token and self.access_token_expiry and time.time() < self.access_token_expiry:
-            return self.access_token
-        else:
-            return self.request_access_token()
-
     def get_access_token(self):
-        return self.authenticate()
+        if self.access_token and self.access_token_expiry:
+            if time.time() < self.access_token_expiry:
+                return self.access_token
+        return self.request_access_token()
 
     def get_auth_headers(self):
         token = self.get_access_token()
-        return {"Content-Type": "application/json",
-                "Authorization": f"Bearer {token}"}
+        if token:
+            return {"Authorization": f"Bearer {token}"}
+        return None
 
 
 class SbsysClient:
