@@ -53,10 +53,10 @@ def fil_by_keyword():
         if not data['keywords'] or not data['sagID']:
             return jsonify({"error": "'keywords' and 'sagID' properties are required. 'keywords' is an array of strings. 'sagID' is a integer"}), 400
         if not isinstance(data['keywords'], list):
-            return jsonify({"error": "keywords has to be a list"})
-        if data['allowedFiletypes']:
+            return jsonify({"error": "keywords has to be a list"}), 400
+        if data.get('allowedFiletypes', None):
             if not isinstance(data['allowedFiletypes'], list):
-                return jsonify({"error": "allowedFiletypes must be a list of strings. e.g. ['pdf', 'docs']"})
+                return jsonify({"error": "allowedFiletypes must be a list of strings. e.g. ['pdf', 'docs']"}), 400
             allowed_filetypes = data['allowedFiletypes']
         documents_response = sbsys_client.fetch_documents(data['sagID'])
         if not documents_response:

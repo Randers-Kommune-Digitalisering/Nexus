@@ -6,38 +6,40 @@ logger = logging.getLogger(__name__)
 
 
 # Abstract base api client class
-class BaseAPIClient(ABC):
+class APIClientWithAuthHeaders(ABC):
     def __init__(self, base_url):
         self.base_url = base_url
 
     @abstractmethod
     def get_auth_headers(self):
-        pass
+        pass  # pragma: no cover
 
     def _make_request(self, method, path, **kwargs):
         headers = self.get_auth_headers()
 
-        if path.startswith("http://") or path.startswith("https://"):
-            url = path
-        else:
-            url = f"{self.base_url}/{path}"
-
-        try:
-            response = method(url, headers=headers, **kwargs)
-            response.raise_for_status()
+        if headers:
+            if path.startswith("http://") or path.startswith("https://"):
+                url = path
+            else:
+                url = f"{self.base_url}/{path}"
 
             try:
-                return response.json()
+                response = method(url, headers=headers, **kwargs)
+                response.raise_for_status()
 
-            except requests.exceptions.JSONDecodeError:
-                if not response.content:
-                    return ' '
-                return response.content
+                try:
+                    return response.json()
 
-        except requests.exceptions.RequestException as e:
-            logger.error(e)
-            # if response.content:
-            #    logger.error(response.content)
+                except requests.exceptions.JSONDecodeError:
+                    if not response.content:
+                        return ' '
+                    return response.content
+
+            except requests.exceptions.RequestException as e:
+                logger.error(e)
+                return None
+        else:
+            logger.error("Failed to get auth headers")
             return None
 
     def get(self, path, params=None, **kwargs):
