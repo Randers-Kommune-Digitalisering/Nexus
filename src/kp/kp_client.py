@@ -167,6 +167,10 @@ class KPAPIClient(APIClientWithAuthHeaders):
         if session_cookie:
             return {"Cookie": f"JSESSIONID={session_cookie}"}
 
+    def _retry_request(self, method, path, **kwargs):
+        self.auth_attempted = True
+        return self._make_request(method, path, **kwargs)
+
     def _make_request(self, method, path, **kwargs):
         # Override _make_request to handle specific behavior for KPAPIClient
         try:
@@ -180,34 +184,46 @@ class KPAPIClient(APIClientWithAuthHeaders):
             else:
                 url = f"{self.base_url}/{path}"
 
+            # Ensure redirects are not followed
+            kwargs['allow_redirects'] = False
+
             try:
                 response = method(url, headers=headers, **kwargs)
                 response.raise_for_status()
 
-                if 'text/html' in response.headers.get('Content-Type', '').lower():  # Check if response is HTML
+                retry_count = 0
+                max_retries = 5
+                while response.status_code == 302 and retry_count < max_retries:
+                    logger.warning("Received 302 redirect status code, retrying... Attempt %d", retry_count + 1)
+                    retry_count += 1
+                    response = method(url, headers=headers, **kwargs)
+
+                if response.status_code != 200 or 'text/html' in response.headers.get('Content-Type', '').lower():
+                    logger.error("Reauthenticating: KP authentication failed with status code %s", response.status_code)
                     retry_authenticate = self.reauthenticate()  # Attempt to fetch new session token
                     if retry_authenticate:
-                        return self._make_request(method, path, **kwargs)  # Retry the request
+                        return self._retry_request(method, path, **kwargs)  # Retry the request
                     else:
+                        self.auth_attempted = False
                         return None
 
                 try:
                     json = response.json()
-                    self.auth_attempted = False
                     return json
 
                 except requests.exceptions.JSONDecodeError:  # Handle JSON decoding errors
-                    self.auth_attempted = False
                     if not response.content:
                         return ' '
                     return response.content
 
             except requests.exceptions.HTTPError as e:  # Handle HTTP errors
                 if e.response.status_code == 401 or (e.response.status_code == 500 and b'AccessDeniedException' in e.response.content):
+                    logger.error("Reauthenticating: KP authentication failed with status code %s", e.response.status_code)
                     retry_authenticate = self.reauthenticate()  # Attempt to fetch new session token
                     if retry_authenticate:
-                        return self._make_request(method, path, **kwargs)  # Retry the request
+                        return self._retry_request(method, path, **kwargs)  # Retry the request
                     else:
+                        self.auth_attempted = False
                         return None
                 else:
                     logger.error(e)
