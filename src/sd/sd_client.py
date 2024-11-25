@@ -4,7 +4,7 @@ import requests
 import xmltodict
 # import json
 # from datetime import datetime
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 # from requests.auth import HTTPBasicAuth
 from typing import Dict, Tuple, Optional
 from auth_header_api_client import APIClientWithAuthHeaders
@@ -46,57 +46,17 @@ class SDAPIClient(APIClientWithAuthHeaders):
         try:
             response = super()._make_request(method, path, **kwargs)
 
-            logger.info(f"\n\nResponse: {response}\n")
-
-            return response
-
-        except requests.RequestException as e:
-            logger.error(f"An error occurred while making the request: {e}")
-            return None
-
-            # Ensure we have a proper response object
-            if not isinstance(response, requests.Response):
-                logger.error(f"Expected a Response object, but got {type(response)}. Path: {path}")
-                return None
-
             if not response:
                 logger.error(f"Response is None. path: {path}")
                 return None
 
-            # Get the content type of the response
-            content_type = kwargs.get('headers', {}).get('Content-Type', response.headers.get('Content-Type', ''))
+            # Parse XML response to JSON
+            try:
+                response_dict = xml_to_json(response)
+                return response_dict
 
-            # Check if the response is HTML or XML
-            if 'text/html' in content_type:
-                soup = BeautifulSoup(response.content, 'html.parser')
-                if not soup:
-                    logger.info("Received a non-HTML response that cannot be parsed for closure details.")
-                else:
-                    title = soup.title.string if soup.title else 'No title'
-                    message = soup.find(id='js_txt').text if soup.find(id='js_txt') else 'No specific message found.'
-                    logger.info(f"API is closed. Title: {title}, Message: {message}")
-                    return None
-            elif 'application/xml' in content_type or 'text/xml' in content_type:
-                # Handle XML response
-                try:
-                    response_dict = xml_to_json(response.content)
-                    # Check for SOAP Fault in the response
-                    fault = response_dict.get('Envelope', {}).get('Body', {}).get('Fault', None)
-                    if fault:
-                        fault_code = fault.get('faultcode', 'No fault code')
-                        fault_string = fault.get('faultstring', 'No fault string')
-                        fault_actor = fault.get('faultactor', 'No fault actor')
-                        fault_detail = fault.get('detail', {}).get('string', 'No fault detail')
-                        logger.error(
-                            f"SOAP Fault occurred: Code: {fault_code}, String: {fault_string}, Actor: {fault_actor}, Detail: {fault_detail}")
-                        return None
-
-                    return response_dict
-                except Exception as e:
-                    logger.error(f"An error occurred while parsing the XML response: {e}")
-                    return None
-            else:
-                logger.warning("Received a response that is neither HTML nor XML.")
+            except Exception as e:
+                logger.error(f"An error occurred while parsing the XML response: {e}")
                 return None
 
         except requests.RequestException as e:
