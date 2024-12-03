@@ -30,6 +30,8 @@ def change_sag_status():
 def sag_search():
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({"error": "JSON payload is required"}), 400
     except Exception:
         return jsonify({"error": "JSON payload is required"}), 400
 
