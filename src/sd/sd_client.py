@@ -119,21 +119,20 @@ class SDClient:
         try:
             response = self.get_request(path=path, params=params)
 
-            # if not response:
-            #     logger.warning("No response from SD client")
-            #     return None
+            if not response:
+                logger.warning("No response from SD client")
+                return None
 
-            # if not response['GetPerson']:
-            #     logger.warning("GetPerson object not found")
-            #     return None
+            if not response['GetPerson']:
+                logger.warning("GetPerson object not found")
+                return None
 
-            # person_data = response['GetPerson'].get('Person', None)
-            # if not person_data:
-            #     logger.warning(f"No person data found for cpr: {cpr}")
-            #     return None
+            person_data = response['GetPerson'].get('Person', None)
+            if not person_data:
+                logger.warning(f"No person data found for cpr: {cpr}")
+                return None
 
-            # return person_data
-            return response
+            return person_data
 
         except Exception as e:
             logger.error(f"An error occured GetPerson: {e}")
