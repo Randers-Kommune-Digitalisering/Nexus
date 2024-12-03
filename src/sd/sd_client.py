@@ -176,20 +176,15 @@ class SDClient:
 
             person_data = response['GetEmployment20070401'].get('Person', None)
             if not person_data:
+                logger.warning(f"No person data found for cpr: {cpr}")
+                return None
+
+            employment_data = person_data.get('Employment', None)
+            if not employment_data:
                 logger.warning(f"No employment data found for cpr: {cpr}")
                 return None
 
-            return person_data
-
-            # if isinstance(person_data, dict):
-            #     person_data = [person_data]
-
-            # for person in person_data:
-            #     employment = person.get('Employment', None)
-            #     if not employment:
-            #         logger.warning(f"Person has no employment object: {person} ")
-            #         return None
-            #     return employment
+            return employment_data
 
         except Exception as e:
             logger.error(f"An error occured GetEmployment20070401: {e}")
