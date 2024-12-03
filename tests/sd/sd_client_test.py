@@ -38,25 +38,25 @@ def test_classmethod_get_client():
 def test_SDAPIClient_post_request(sd_api_client, requests_mock):
     path = "test"
     url = sd_url + "/" + path
-    mock_response = {"result": "success"}
-    requests_mock.post(url, json=mock_response)
+    mock_response = "<response><result>success</result></response>"
+    requests_mock.post(url, text=mock_response)
 
     with patch.object(SDAPIClient, 'get_auth_headers', return_value={"Authorization": "Basic test_token"}):
         response = sd_api_client.post(path=path, json={"data": "value"})
 
-    assert response == mock_response
+    assert response == {"response": {"result": "success"}}
 
 
 def test_make_request_success(sd_api_client, requests_mock):
     path = "test"
     url = sd_url + "/" + path
-    mock_response = {"key": "value"}
-    requests_mock.get(url, json=mock_response)
+    mock_response = "<response><key>value</key></response>"
+    requests_mock.get(url, text=mock_response)
 
     with patch.object(SDAPIClient, 'get_auth_headers', return_value={"Authorization": "Basic test_token"}):
         response = sd_api_client.get(path)
 
-    assert response == mock_response
+    assert response == {"response": {"key": "value"}}
 
 
 def test_make_request_failure(sd_api_client, requests_mock):
@@ -79,34 +79,34 @@ def sd_client():
 def test_get_person(sd_client, requests_mock):
     path = "GetPerson"
     url = f"{sd_url}/{path}"
-    mock_response = {"GetPerson": {"Person": {"name": "John Doe"}}}
-    requests_mock.get(url, json=mock_response)
+    mock_response = "<GetPerson><Person><name>John Doe</name></Person></GetPerson>"
+    requests_mock.get(url, text=mock_response)
 
     with patch.object(SDAPIClient, 'get_auth_headers', return_value={"Authorization": "Basic test_token"}):
         response = sd_client.get_person(cpr="123456-7890", employement_identifier="emp_id", inst_code="inst_code")
 
-    assert response == mock_response["GetPerson"]["Person"]
+    assert response == {"Person": {"name": "John Doe"}}
 
 
 def test_get_employment(sd_client, requests_mock):
     path = "GetEmployment20070401"
     url = f"{sd_url}/{path}"
-    mock_response = {"GetEmployment20070401": {"Person": {"Employment": {"position": "Developer"}}}}
-    requests_mock.get(url, json=mock_response)
+    mock_response = "<GetEmployment20070401><Person><Employment><position>Developer</position></Employment></Person></GetEmployment20070401>"
+    requests_mock.get(url, text=mock_response)
 
     with patch.object(SDAPIClient, 'get_auth_headers', return_value={"Authorization": "Basic test_token"}):
         response = sd_client.get_employment(cpr="123456-7890", employment_identifier="emp_id", inst_code="inst_code")
 
-    assert response == mock_response["GetEmployment20070401"]["Person"]["Employment"]
+    assert response == {"Person": {"Employment": {"position": "Developer"}}}
 
 
 def test_get_employment_changed(sd_client, requests_mock):
     path = "GetEmploymentChanged20070401"
     url = f"{sd_url}/{path}"
-    mock_response = {"GetEmploymentChanged20070401": {"Person": {"changes": "some changes"}}}
-    requests_mock.get(url, json=mock_response)
+    mock_response = "<GetEmploymentChanged20070401><Person><changes>some changes</changes></Person></GetEmploymentChanged20070401>"
+    requests_mock.get(url, text=mock_response)
 
     with patch.object(SDAPIClient, 'get_auth_headers', return_value={"Authorization": "Basic test_token"}):
         response = sd_client.get_employment_changed(cpr="123456-7890", employment_identifier="emp_id", inst_code="inst_code", activation_date="01.01.2020", deactivation_date="01.01.2021")
 
-    assert response == mock_response["GetEmploymentChanged20070401"]["Person"]
+    assert response == {"Person": {"changes": "some changes"}}

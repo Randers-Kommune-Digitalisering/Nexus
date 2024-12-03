@@ -30,7 +30,7 @@ def test_sag_search(mock_sag_search, client):
 def test_sag_search_missing_data(client):
     response = client.post('/api/sbsys/sag/search', json={})
     assert response.status_code == 400
-    assert response.json == {"error": "data is required"}
+    assert response.json == {"error": "JSON payload is required"}
 
 
 @patch('endpoints.sbsys_endpoints.sbsys_client.sag_search')
