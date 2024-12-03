@@ -103,6 +103,9 @@ class SDClient:
             # Get the current date and format it as DD.MM.YYYY
             effective_date = "01.01.5000"
 
+        if cpr is not None and "-" in cpr:
+            cpr = cpr.replace("-", "")
+
         params = {
             'EmploymentStatusIndicator': 'true',
             'EmploymentIdentifier': employement_identifier,
@@ -144,6 +147,9 @@ class SDClient:
         if not effective_date:
             # Get the current date and format it as DD.MM.YYYY
             effective_date = "01.01.5000"
+
+        if cpr is not None and "-" in cpr:
+            cpr = cpr.replace("-", "")
 
         # Define the SD params
         params = {
@@ -191,6 +197,9 @@ class SDClient:
 
     def get_employment_changed(self, cpr, employment_identifier, inst_code, activation_date, deactivation_date):
         path = 'GetEmploymentChanged20070401'
+
+        if cpr is not None and "-" in cpr:
+            cpr = cpr.replace("-", "")
 
         # Define the SD params
         params = {
