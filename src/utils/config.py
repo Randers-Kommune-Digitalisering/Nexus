@@ -44,7 +44,7 @@ BROWSERLESS_CLIENT_ID = os.environ["BROWSERLESS_CLIENT_ID"].strip()
 BROWSERLESS_CLIENT_SECRET = os.environ["BROWSERLESS_CLIENT_SECRET"].strip()
 
 # SD
-SD_URL = os.getenv("SD_URL", "sd-test-url").strip()
+SD_URL = os.getenv("SD_URL", "https://sd-mock.com").strip()
 SD_USERNAME = os.getenv("SD_USERNAME", "sd-test-user").strip()
 SD_PASSWORD = os.getenv("SD_PASSWORD", "sd-test-pass").strip()
 SD_INST_ID = os.getenv("SD_INST_ID", "sd-test-inst-id").strip()
