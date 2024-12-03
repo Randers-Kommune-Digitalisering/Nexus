@@ -78,6 +78,27 @@ class SbsysClient:
         path = "api/sag/search"
         return self.api_client.post(path=path, json=payload)
 
+    def sag_get(self, cpr):
+        path = "api/sag/search"
+        if "-" not in cpr:
+            cpr = cpr[:6] + "-" + cpr[6:]
+        payload = {
+            'PrimaerPerson': {
+                'CprNummer': cpr
+            },
+            'SagsTyper': [
+                {
+                    'Navn': 'PersonaleSag'
+                }
+            ]
+        }
+        try:
+            response = self.api_client.post(path=path, json=payload)
+            return response
+        except Exception as e:
+            logger.error(f"An error occurred while performing sag_get: {e}")
+            return None
+
     def fetch_documents(self, sag_id):
         path = f"api/sag/{sag_id}/dokumenter"
         return self.api_client.get(path=path)

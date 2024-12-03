@@ -33,11 +33,22 @@ def sag_search():
     except Exception:
         return jsonify({"error": "JSON payload is required"}), 400
 
-    if not data.get('data', None):
-        return jsonify({"error": "data property is required"}), 400
-
     try:
         response = sbsys_client.sag_search(payload=data)
+        return response, 200
+    except Exception as e:
+        return e, 500
+
+
+@api_sbsys_bp.route('/personalesag', methods=['GET'])
+def sag_get():
+    cpr = request.args.get('cpr')
+
+    if not cpr:
+        return jsonify({"error": "cpr is required"}), 400
+
+    try:
+        response = sbsys_psag_client.sag_get(cpr)
         return response, 200
     except Exception as e:
         return e, 500
