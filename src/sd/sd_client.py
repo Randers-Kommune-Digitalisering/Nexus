@@ -189,6 +189,49 @@ class SDClient:
         except Exception as e:
             logger.error(f"An error occured GetEmployment20070401: {e}")
 
+    def get_employment_changed(self, cpr, employment_identifier, inst_code, activation_date, deactivation_date):
+        path = 'GetEmploymentChanged20070401'
+
+        # Define the SD params
+        params = {
+            'InstitutionIdentifier': inst_code,
+            'EmploymentStatusIndicator': 'true',
+            'PersonCivilRegistrationIdentifier': cpr,
+            'EmploymentIdentifier': employment_identifier,
+            'DepartmentIdentifier': '',
+            'ProfessionIndicator': 'false',
+            'DepartmentIndicator': 'true',
+            'WorkingTimeIndicator': 'false',
+            'SalaryCodeGroupIndicator': 'false',
+            'SalaryAgreementIndicator': 'false',
+            'StatusActiveIndicator': 'true',
+            'StatusPassiveIndicator': 'true',
+            'submit': 'OK',
+            'ActivationDate': activation_date,
+            'DeactivationDate': deactivation_date
+        }
+
+        try:
+            response = self.get_request(path=path, params=params)
+
+            if not response:
+                logger.warning("No response from SD client")
+                return None
+
+            if not response['GetEmploymentChanged20070401']:
+                logger.warning("GetEmploymentChanged20070401 object not found")
+                return None
+
+            person_data = response['GetEmploymentChanged20070401'].get('Person', None)
+            if not person_data:
+                logger.warning("No employment changes found for dates provided")
+                return []
+
+            return person_data
+
+        except Exception as e:
+            logger.error(f"An error occured GetEmployment20070401: {e}")
+
 
 def xml_to_json(xml_data):
     try:

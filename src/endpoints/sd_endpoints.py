@@ -17,6 +17,9 @@ def get_person():
         employment_id = request.args.get('employment')
         cpr = request.args.get('cpr')
 
+        if not cpr and not employment_id:
+            return jsonify({"error": "cpr or employment (id) required"}), 400
+
         if date:
             try:
                 day, month, year = map(int, date.split('.'))
@@ -26,7 +29,7 @@ def get_person():
         response = sd_client.get_person(cpr, employment_id, SD_INST_ID, date)
 
         if response is None:
-            return jsonify({"error": "No response from function call get_person()"}), 500
+            return jsonify({"error": "No response from function call get_person"}), 500
 
         try:
             return jsonify(response)
@@ -44,9 +47,9 @@ def get_employment():
         employment_id = request.args.get('employment')
         cpr = request.args.get('cpr')
 
-        # if not date:
-        #     return jsonify({"error": "date is required"}), 400
-        
+        if not cpr and not employment_id:
+            return jsonify({"error": "cpr or employment (id) required"}), 400
+
         if date:
             try:
                 day, month, year = map(int, date.split('.'))
@@ -56,7 +59,38 @@ def get_employment():
         response = sd_client.get_employment(cpr, employment_id, SD_INST_ID, date)
 
         if response is None:
-            return jsonify({"error": "No response from function call get_employment()"}), 500
+            return jsonify({"error": "No response from function call get_employment"}), 500
+
+        try:
+            return jsonify(response)
+        except Exception:
+            return response
+
+    except Exception as e:
+        return jsonify({"error": f"{e}"}), 500
+
+
+@api_sd_bp.route('/employment-changed', methods=['GET'])
+def get_employment_changed():
+    try:
+        activation_date = request.args.get('activation_date')
+        deactivation_date = request.args.get('deactivation_date')
+        employment_id = request.args.get('employment')
+        cpr = request.args.get('cpr')
+
+        if not activation_date or not deactivation_date:
+            return jsonify({"error": "activation_date and deactivation_date is required"}), 400
+
+        try:
+            day, month, year = map(int, activation_date.split('.'))
+            day, month, year = map(int, deactivation_date.split('.'))
+        except ValueError:
+            return jsonify({"error": "dates must be in DD.MM.YYYY format"}), 400
+
+        response = sd_client.get_employment_changed(cpr, employment_id, SD_INST_ID, activation_date, deactivation_date)
+
+        if response is None:
+            return jsonify({"error": "No response from function call get_employment_changed"}), 500
 
         try:
             return jsonify(response)
