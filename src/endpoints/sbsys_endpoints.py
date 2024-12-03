@@ -26,14 +26,17 @@ def change_sag_status():
     # TODO journaliser kladder, og udfør erindringer for sager der skal afluttes, lukkes etc.
 
 
-@api_sbsys_bp.route('/sag/search', methods=['POST'])
+@api_sbsys_bp.route('/sag/search', methods=['POST', 'GET'])
 def sag_search():
     try:
         data = request.get_json()
+    except Exception:
+        return jsonify({"error": "JSON payload is required"}), 400
 
-        if not data:
-            return jsonify({"error": "data is required"}), 400
+    if not data.get('data', None):
+        return jsonify({"error": "data property is required"}), 400
 
+    try:
         response = sbsys_client.sag_search(payload=data)
         return response, 200
     except Exception as e:
