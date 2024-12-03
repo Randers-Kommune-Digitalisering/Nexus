@@ -83,7 +83,8 @@ def test_get_person(sd_client, requests_mock):
     requests_mock.get(url, text=mock_response)
 
     with patch.object(SDAPIClient, 'get_auth_headers', return_value={"Authorization": "Basic test_token"}):
-        response = sd_client.get_person(cpr="123456-7890", employement_identifier="emp_id", inst_code="inst_code")
+        with patch.object(SDClient, 'get_request', return_value={"GetPerson": {"Person": {"name": "John Doe"}}}):
+            response = sd_client.get_person(cpr="123456-7890", employement_identifier="emp_id", inst_code="inst_code")
 
     assert response == {"Person": {"name": "John Doe"}}
 
@@ -95,7 +96,8 @@ def test_get_employment(sd_client, requests_mock):
     requests_mock.get(url, text=mock_response)
 
     with patch.object(SDAPIClient, 'get_auth_headers', return_value={"Authorization": "Basic test_token"}):
-        response = sd_client.get_employment(cpr="123456-7890", employment_identifier="emp_id", inst_code="inst_code")
+        with patch.object(SDClient, 'get_request', return_value={"GetEmployment20070401": {"Person": {"Employment": {"position": "Developer"}}}}):
+            response = sd_client.get_employment(cpr="123456-7890", employment_identifier="emp_id", inst_code="inst_code")
 
     assert response == {"Person": {"Employment": {"position": "Developer"}}}
 
@@ -107,6 +109,7 @@ def test_get_employment_changed(sd_client, requests_mock):
     requests_mock.get(url, text=mock_response)
 
     with patch.object(SDAPIClient, 'get_auth_headers', return_value={"Authorization": "Basic test_token"}):
-        response = sd_client.get_employment_changed(cpr="123456-7890", employment_identifier="emp_id", inst_code="inst_code", activation_date="01.01.2020", deactivation_date="01.01.2021")
+        with patch.object(SDClient, 'get_request', return_value={"GetEmploymentChanged20070401": {"Person": {"changes": "some changes"}}}):
+            response = sd_client.get_employment_changed(cpr="123456-7890", employment_identifier="emp_id", inst_code="inst_code", activation_date="01.01.2020", deactivation_date="01.01.2021")
 
     assert response == {"Person": {"changes": "some changes"}}
