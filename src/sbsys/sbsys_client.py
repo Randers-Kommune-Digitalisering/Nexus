@@ -80,8 +80,10 @@ class SbsysClient:
 
     def sag_get(self, cpr):
         path = "api/sag/search"
+
         if "-" not in cpr:
             cpr = cpr[:6] + "-" + cpr[6:]
+
         payload = {
             'PrimaerPerson': {
                 'CprNummer': cpr
@@ -92,9 +94,20 @@ class SbsysClient:
                 }
             ]
         }
+
         try:
             response = self.api_client.post(path=path, json=payload)
-            return response
+
+            if not response:
+                logger.warning("No response from SBSYS client")
+                return None
+
+            if not response['Results']:
+                logger.warning("Results list not found")
+                return None
+
+            return response['Results']
+
         except Exception as e:
             logger.error(f"An error occurred while performing sag_get: {e}")
             return None
