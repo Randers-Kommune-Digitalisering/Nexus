@@ -45,7 +45,7 @@ BROWSERLESS_CLIENT_SECRET = os.environ["BROWSERLESS_CLIENT_SECRET"].strip()
 
 # SD
 SD_URL = os.getenv("SD_URL", "sd-test-url").strip()
-SD_USERNAME = os.environ["SD_USERNAME"].strip()
-SD_PASSWORD = os.environ["SD_PASSWORD"].strip()
-SD_INST_ID = os.environ["SD_INST_ID"].strip()
-SD_BASIC_AUTH = os.environ["SD_BASIC_AUTH"].strip()
+SD_USERNAME = os.getenv("SD_USERNAME", "sd-test-user").strip()
+SD_PASSWORD = os.getenv("SD_PASSWORD", "sd-test-pass").strip()
+SD_INST_ID = os.getenv("SD_INST_ID", "sd-test-inst-id").strip()
+SD_BASIC_AUTH = os.getenv("SD_BASIC_AUTH", "sd-test-basic-auth").strip()
