@@ -78,7 +78,7 @@ class SbsysClient:
         path = "api/sag/search"
         return self.api_client.post(path=path, json=payload)
 
-    def sag_get(self, cpr):
+    def get_personalesag(self, cpr):
         path = "api/sag/search"
 
         if "-" not in cpr:
@@ -111,6 +111,18 @@ class SbsysClient:
         except Exception as e:
             logger.error(f"An error occurred while performing sag_get: {e}")
             return None
+
+    def get_erindringer(self, sag_id):
+        path = f"api/erindring/sag/{sag_id}"
+        return self.api_client.get(path=path)
+
+    def complete_erindring(self, erindring_id):
+        path = "api/erindring/complete"
+        payload = {
+            "ErindringId": erindring_id,
+            "OpretJournalArkNotat": True
+        }
+        return self.api_client.put(path=path, json=payload)
 
     def fetch_documents(self, sag_id):
         path = f"api/sag/{sag_id}/dokumenter"
