@@ -37,9 +37,9 @@ def sag_search():
 
     try:
         response = sbsys_client.sag_search(payload=data)
-        return response, 200
+        return jsonify(response), 200
     except Exception as e:
-        return e, 500
+        return jsonify({"error": str(e)}), 500
 
 
 @api_sbsys_bp.route('/personalesag', methods=['GET'])
