@@ -1,10 +1,10 @@
 import pytest
 from unittest.mock import patch
 from sd.sd_client import SDClient, SDAPIClient
-from utils.config import SD_USERNAME, SD_PASSWORD
+from utils.config import SD_URL, SD_USERNAME, SD_PASSWORD
 
 
-sd_url = "https://sd-mock.com"
+sd_url = SD_URL or "https://sd-mock.com"
 
 
 # SDAPIClient
