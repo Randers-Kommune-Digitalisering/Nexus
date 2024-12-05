@@ -21,6 +21,7 @@ def change_sag_status():
         data = request.get_json()
     except Exception:
         data = None
+
     status_id = data.get('status_id') if data else request.args.get('status_id')
     sag_id = data.get('id') if data else request.args.get('id')
 
@@ -40,8 +41,8 @@ def sag_erindringer():
         data = request.get_json()
     except Exception:
         data = None
-    sag_id = data.get('sag_id') if data else request.args.get('sag_id')
 
+    sag_id = data.get('sag_id') if data else request.args.get('sag_id')
     if not sag_id:
         return jsonify({"error": "sag_id (sag id) is required"}), 400
 
@@ -89,8 +90,8 @@ def sag_kladder():
         data = request.get_json()
     except Exception:
         data = None
-    sag_id = data.get('sag_id') if data else request.args.get('sag_id')
 
+    sag_id = data.get('sag_id') if data else request.args.get('sag_id')
     if not sag_id:
         return jsonify({"error": "sag_id (sag id) is required"}), 400
 
@@ -99,6 +100,37 @@ def sag_kladder():
         return jsonify(response), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@api_sbsys_bp.route('/kladder/journalize', methods=['PUT'])
+def kladder_journalize():
+    try:
+        data = request.get_json()
+    except Exception:
+        data = None
+    kladder_ids = data if data and isinstance(data, list) else [request.args.get('id')]
+
+    try:
+        kladder_ids = [int(i) for i in kladder_ids if i]
+    except Exception:
+        return jsonify({"error": "id (kladder ids) must be integers"}), 400
+
+    if not kladder_ids:
+        return jsonify({"error": "id (kladder ids) are required, either as id parameter or JSON list of integers as body"}), 400
+
+    results = []
+    for kladde_id in kladder_ids:
+        success = True
+        try:
+            response = sbsys_psag_client.journalize_kladde(kladde_id)
+            if not response:
+                success = False
+        except Exception as e:
+            logger.error(f"An error occurred while journalizing kladde {kladde_id}: {e}")
+            success = False
+        results.append({"id": kladde_id, "success": success})
+
+    return jsonify(results), 200
 
 
 @api_sbsys_bp.route('/sag/search', methods=['POST', 'GET'])
@@ -119,7 +151,12 @@ def sag_search():
 
 @api_sbsys_bp.route('/personalesag', methods=['GET'])
 def get_personalesag():
-    cpr = request.args.get('cpr')
+    try:
+        data = request.get_json()
+    except Exception:
+        data = None
+
+    cpr = data.get('cpr') if data else request.args.get('cpr')
     if not cpr:
         return jsonify({"error": "cpr is required"}), 400
 

@@ -121,8 +121,15 @@ class SbsysClient:
         return self.api_client.put(path=path, json=payload)
 
     def get_kladder(self, sag_id):
-        path = f"api/kladde/sag/{sag_id}"
-        return self.api_client.get(path=path)
+        path = "api/kladde/search"
+        payload = {
+            "SagIds": [sag_id]
+        }
+        return self.api_client.post(path=path, json=payload)
+
+    def journalize_kladde(self, kladde_id):
+        path = f"api/kladde/{kladde_id}/journaliser"
+        return self.api_client.post(path=path, json={})
 
     def fetch_documents(self, sag_id):
         path = f"api/sag/{sag_id}/dokumenter"
