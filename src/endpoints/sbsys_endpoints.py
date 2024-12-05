@@ -31,47 +31,48 @@ def change_sag_status():
 
     return jsonify({"result": "success"}), 200
 
-    # TODO journaliser kladder, og udfør erindringer for sager der skal afluttes, lukkes etc.
+    # TODO Forsøg at ændre sagsstatus
 
 
-@api_sbsys_bp.route('/sag/erindringer', methods=['GET'])
+@api_sbsys_bp.route('/erindringer', methods=['GET'])
 def sag_erindringer():
     try:
         data = request.get_json()
     except Exception:
         data = None
-    sag_id = data.get('id') if data else request.args.get('id')
+    sag_id = data.get('sag_id') if data else request.args.get('sag_id')
 
     if not sag_id:
-        return jsonify({"error": "id (sag id) is required"}), 400
+        return jsonify({"error": "sag_id (sag id) is required"}), 400
 
     try:
-        response = sbsys_client.get_erindringer(sag_id)
+        response = sbsys_psag_client.get_erindringer(sag_id)
         return jsonify(response), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
-@api_sbsys_bp.route('/sag/erindringer/complete', methods=['PUT'])
-def sag_erindringer_complete():
+@api_sbsys_bp.route('/erindringer/complete', methods=['PUT'])
+def erindringer_complete():
     try:
         data = request.get_json()
     except Exception:
         data = None
     erindringer_ids = data if data and isinstance(data, list) else [request.args.get('id')]
+
     try:
         erindringer_ids = [int(i) for i in erindringer_ids if i]
     except Exception:
-        return jsonify({"error": "ids (erindring id) must be integers"}), 400
+        return jsonify({"error": "id (erindring ids) must be integers"}), 400
 
     if not erindringer_ids:
-        return jsonify({"error": "ids (erindring id) are required, either as id parameter or JSON list of integers as body"}), 400
+        return jsonify({"error": "id (erindring ids) are required, either as id parameter or JSON list of integers as body"}), 400
 
     results = []
     for erindring_id in erindringer_ids:
         success = True
         try:
-            response = sbsys_client.complete_erindring(erindring_id)
+            response = sbsys_psag_client.complete_erindring(erindring_id)
             if not response:
                 success = False
         except Exception as e:
@@ -80,6 +81,24 @@ def sag_erindringer_complete():
         results.append({"id": erindring_id, "success": success})
 
     return jsonify(results), 200
+
+
+@api_sbsys_bp.route('/kladder', methods=['GET'])
+def sag_kladder():
+    try:
+        data = request.get_json()
+    except Exception:
+        data = None
+    sag_id = data.get('sag_id') if data else request.args.get('sag_id')
+
+    if not sag_id:
+        return jsonify({"error": "sag_id (sag id) is required"}), 400
+
+    try:
+        response = sbsys_psag_client.get_kladder(sag_id)
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @api_sbsys_bp.route('/sag/search', methods=['POST', 'GET'])

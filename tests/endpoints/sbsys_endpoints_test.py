@@ -16,7 +16,7 @@ def client():
 def test_sag_status_missing_status_id(client):
     response = client.post('/api/sbsys/sag/status', json={})
     assert response.status_code == 400
-    assert response.json == {"error": "SagsStatusID is required"}
+    assert response.json == {"error": "id (SBSYS sag id) is required"}
 
 
 @patch('endpoints.sbsys_endpoints.sbsys_client.sag_search')

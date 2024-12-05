@@ -80,7 +80,6 @@ class SbsysClient:
 
     def get_personalesag(self, cpr):
         path = "api/sag/search"
-
         if "-" not in cpr:
             cpr = cpr[:6] + "-" + cpr[6:]
 
@@ -97,15 +96,12 @@ class SbsysClient:
 
         try:
             response = self.api_client.post(path=path, json=payload)
-
             if not response:
                 logger.warning("No response from SBSYS client")
                 return None
-
             if not response['Results']:
                 logger.warning("Results list not found")
                 return None
-
             return response['Results']
 
         except Exception as e:
@@ -123,6 +119,10 @@ class SbsysClient:
             "OpretJournalArkNotat": True
         }
         return self.api_client.put(path=path, json=payload)
+
+    def get_kladder(self, sag_id):
+        path = f"api/kladde/sag/{sag_id}"
+        return self.api_client.get(path=path)
 
     def fetch_documents(self, sag_id):
         path = f"api/sag/{sag_id}/dokumenter"
