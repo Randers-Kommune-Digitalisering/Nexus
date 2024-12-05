@@ -100,7 +100,7 @@ class SbsysClient:
                 logger.warning("No response from SBSYS client")
                 return None
             if not response['Results']:
-                logger.warning("Results list not found")
+                logger.warning("CPR not found in SBSYS")
                 return None
             return response['Results']
 
