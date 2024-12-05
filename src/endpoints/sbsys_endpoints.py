@@ -15,7 +15,7 @@ sbsys_psag_client = SbsysClient(SBSIP_PSAG_CLIENT_ID, SBSIP_PSAG_CLIENT_SECRET,
 api_sbsys_bp = Blueprint('api_sbsys', __name__, url_prefix='/api/sbsys')
 
 
-@api_sbsys_bp.route('/sag/status', methods=['POST'])
+@api_sbsys_bp.route('/sag/status', methods=['PUT', 'POST'])
 def change_sag_status():
     try:
         data = request.get_json()
@@ -30,9 +30,13 @@ def change_sag_status():
     if not status_id:
         return jsonify({"error": "status_id is required"}), 400
 
-    return jsonify({"result": "success"}), 200
+    response = sbsys_psag_client.set_sag_status(sag_id, status_id)
+    logger.info("Response from SBSYS: %s", response)
 
-    # TODO Forsøg at ændre sagsstatus
+    if not response:
+        return jsonify({"error": "Failed to change status"}), 500
+
+    return jsonify(response), 200
 
 
 @api_sbsys_bp.route('/erindringer', methods=['GET'])

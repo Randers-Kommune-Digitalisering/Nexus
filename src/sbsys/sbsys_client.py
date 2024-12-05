@@ -108,6 +108,10 @@ class SbsysClient:
             logger.error(f"An error occurred while performing sag_get: {e}")
             return None
 
+    def set_sag_status(self, sag_id, status_id):
+        path = f"api/sag/{sag_id}/status"
+        return self.api_client.put(path=path, json={"SagsStatusID": status_id, "Kommentar": "Sag lukket automatisk af robot"})
+
     def get_erindringer(self, sag_id):
         path = f"api/erindring/sag/{sag_id}"
         return self.api_client.get(path=path)
