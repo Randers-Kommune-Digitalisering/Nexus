@@ -16,6 +16,7 @@ def get_person():
         date = request.args.get('date')
         employment_id = request.args.get('employment')
         cpr = request.args.get('cpr')
+        inst_id = request.args.get('inst') or SD_INST_ID
 
         if not cpr and not employment_id:
             return jsonify({"error": "cpr or employment (id) required"}), 400
@@ -26,7 +27,7 @@ def get_person():
             except ValueError:
                 return jsonify({"error": "date must be in DD.MM.YYYY format"}), 400
 
-        response = sd_client.get_person(cpr, employment_id, SD_INST_ID, date)
+        response = sd_client.get_person(cpr, employment_id, inst_id, date)
 
         if response is None:
             return jsonify({"error": "No response from function call get_person"}), 500
@@ -46,6 +47,7 @@ def get_employment():
         date = request.args.get('date')
         employment_id = request.args.get('employment')
         cpr = request.args.get('cpr')
+        inst_id = request.args.get('inst') or SD_INST_ID
 
         if not cpr and not employment_id:
             return jsonify({"error": "cpr or employment (id) required"}), 400
@@ -56,8 +58,8 @@ def get_employment():
             except ValueError:
                 return jsonify({"error": "date must be in DD.MM.YYYY format"}), 400
 
-        response = sd_client.get_employment(cpr, employment_id, SD_INST_ID, date)
-        
+        response = sd_client.get_employment(cpr, employment_id, inst_id, date)
+
         if response is None:
             return jsonify({"error": "Employment not found"}), 404
         if not response:
@@ -79,6 +81,7 @@ def get_employment_changed():
         deactivation_date = request.args.get('deactivation_date')
         employment_id = request.args.get('employment')
         cpr = request.args.get('cpr')
+        inst_id = request.args.get('inst') or SD_INST_ID
 
         if not activation_date or not deactivation_date:
             return jsonify({"error": "activation_date and deactivation_date is required"}), 400
@@ -89,7 +92,7 @@ def get_employment_changed():
         except ValueError:
             return jsonify({"error": "dates must be in DD.MM.YYYY format"}), 400
 
-        response = sd_client.get_employment_changed(cpr, employment_id, SD_INST_ID, activation_date, deactivation_date)
+        response = sd_client.get_employment_changed(cpr, employment_id, inst_id, activation_date, deactivation_date)
 
         if response is None:
             return jsonify({"error": "No response from function call get_employment_changed"}), 500
