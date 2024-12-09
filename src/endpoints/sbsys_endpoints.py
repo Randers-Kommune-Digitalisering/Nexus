@@ -166,9 +166,12 @@ def get_personalesag():
 
     try:
         response = sbsys_psag_client.get_personalesag(cpr)
-        if not response:
+        if response is None:
             return jsonify({"error": "No results found"}), 404
+        if not response:
+            return jsonify({"error": "Failed to fetch personalesag"}), 500
         return response, 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

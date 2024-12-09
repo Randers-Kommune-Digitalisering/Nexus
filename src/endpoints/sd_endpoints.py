@@ -57,8 +57,10 @@ def get_employment():
                 return jsonify({"error": "date must be in DD.MM.YYYY format"}), 400
 
         response = sd_client.get_employment(cpr, employment_id, SD_INST_ID, date)
-
+        
         if response is None:
+            return jsonify({"error": "Employment not found"}), 404
+        if not response:
             return jsonify({"error": "No response from function call get_employment"}), 500
 
         try:

@@ -98,7 +98,7 @@ class SbsysClient:
             response = self.api_client.post(path=path, json=payload)
             if not response:
                 logger.warning("No response from SBSYS client")
-                return None
+                return False
             if not response['Results']:
                 logger.warning("CPR not found in SBSYS")
                 return None
@@ -106,7 +106,7 @@ class SbsysClient:
 
         except Exception as e:
             logger.error(f"An error occurred while performing sag_get: {e}")
-            return None
+            return False
 
     def set_sag_status(self, sag_id, status_id):
         path = f"api/sag/{sag_id}/status"

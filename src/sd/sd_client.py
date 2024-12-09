@@ -174,9 +174,9 @@ class SDClient:
 
             if not response:
                 logger.warning("No response from SD client")
-                return None
+                return False
 
-            if not response['GetEmployment20070401']:
+            if not response.get('GetEmployment20070401', None):
                 logger.warning("GetEmployment20070401 object not found")
                 return None
 
@@ -194,6 +194,7 @@ class SDClient:
 
         except Exception as e:
             logger.error(f"An error occured GetEmployment20070401: {e}")
+            return False
 
     def get_employment_changed(self, cpr, employment_identifier, inst_code, activation_date, deactivation_date):
         path = 'GetEmploymentChanged20070401'
