@@ -124,7 +124,7 @@ class SDClient:
 
             if not response:
                 logger.warning("No response from SD client")
-                return None
+                return False
 
             if not response['GetPerson']:
                 logger.warning("GetPerson object not found")
@@ -139,7 +139,7 @@ class SDClient:
 
         except Exception as e:
             logger.error(f"An error occured GetPerson: {e}")
-            return None
+            return False
 
     def get_employment(self, cpr, employment_identifier, inst_code, effective_date=None):
         path = 'GetEmployment20070401'
@@ -226,7 +226,7 @@ class SDClient:
 
             if not response:
                 logger.warning("No response from SD client")
-                return None
+                return False
 
             if not response['GetEmploymentChanged20070401']:
                 logger.warning("GetEmploymentChanged20070401 object not found")
@@ -235,12 +235,13 @@ class SDClient:
             person_data = response['GetEmploymentChanged20070401'].get('Person', None)
             if not person_data:
                 logger.warning("No employment changes found for dates provided")
-                return []
+                return None
 
             return person_data
 
         except Exception as e:
             logger.error(f"An error occured GetEmployment20070401: {e}")
+            return False
 
 
 def xml_to_json(xml_data):

@@ -95,6 +95,8 @@ def get_employment_changed():
         response = sd_client.get_employment_changed(cpr, employment_id, inst_id, activation_date, deactivation_date)
 
         if response is None:
+            return jsonify({"error": "No employment changes found"}), 404
+        if not response:
             return jsonify({"error": "No response from function call get_employment_changed"}), 500
 
         try:
