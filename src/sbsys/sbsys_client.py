@@ -78,6 +78,63 @@ class SbsysClient:
         path = "api/sag/search"
         return self.api_client.post(path=path, json=payload)
 
+    def get_personalesag(self, cpr):
+        path = "api/sag/search"
+        if "-" not in cpr:
+            cpr = cpr[:6] + "-" + cpr[6:]
+
+        payload = {
+            'PrimaerPerson': {
+                'CprNummer': cpr
+            },
+            'SagsTyper': [
+                {
+                    'Navn': 'PersonaleSag'
+                }
+            ]
+        }
+
+        try:
+            response = self.api_client.post(path=path, json=payload)
+            if not response:
+                logger.warning("No response from SBSYS client")
+                return False
+            if not response['Results']:
+                logger.warning("CPR not found in SBSYS")
+                return None
+            return response['Results']
+
+        except Exception as e:
+            logger.error(f"An error occurred while performing sag_get: {e}")
+            return False
+
+    def set_sag_status(self, sag_id, status_id):
+        path = f"api/sag/{sag_id}/status"
+        return self.api_client.put(path=path, json={"SagsStatusID": status_id, "Kommentar": "Sag lukket automatisk af robot"})
+
+    def get_erindringer(self, sag_id):
+        path = f"api/erindring/sag/{sag_id}"
+        return self.api_client.get(path=path)
+
+    def complete_erindring(self, erindring_id):
+        path = "api/erindring/complete"
+        payload = {
+            "ErindringId": erindring_id,
+            "OpretJournalArkNotat": True
+        }
+        return self.api_client.put(path=path, json=payload)
+
+    def get_kladder(self, sag_id):
+        path = "api/kladde/search"
+        payload = {
+            "SagIds": [sag_id]
+        }
+        return self.api_client.post(path=path, json=payload)
+
+    def journalize_kladde(self, kladde_id):
+        path = f"api/kladde/{kladde_id}/journaliser"
+        return self.api_client.post(path=path, json={})
+
     def fetch_documents(self, sag_id):
         path = f"api/sag/{sag_id}/dokumenter"
         return self.api_client.get(path=path)

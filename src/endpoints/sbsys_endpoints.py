@@ -15,29 +15,165 @@ sbsys_psag_client = SbsysClient(SBSIP_PSAG_CLIENT_ID, SBSIP_PSAG_CLIENT_SECRET,
 api_sbsys_bp = Blueprint('api_sbsys', __name__, url_prefix='/api/sbsys')
 
 
-@api_sbsys_bp.route('/sag/status', methods=['POST'])
+@api_sbsys_bp.route('/sag/status', methods=['PUT', 'POST'])
 def change_sag_status():
-    data = request.get_json()
-    status_id = data.get('SagsStatusID')
-    # comment = data.get('Kommentar')
+    try:
+        data = request.get_json()
+    except Exception:
+        data = None
 
+    status_id = data.get('status_id') if data else request.args.get('status_id')
+    sag_id = data.get('id') if data else request.args.get('id')
+
+    if not sag_id:
+        return jsonify({"error": "id (SBSYS sag id) is required"}), 400
     if not status_id:
-        return jsonify({"error": "SagsStatusID is required"}), 400
-    # TODO journaliser kladder, og udfør erindringer for sager der skal afluttes, lukkes etc.
+        return jsonify({"error": "status_id is required"}), 400
+
+    response = sbsys_psag_client.set_sag_status(sag_id, status_id)
+    logger.info("Response from SBSYS: %s", response)
+
+    if not response:
+        return jsonify({"error": "Failed to change status"}), 500
+
+    return jsonify(response), 200
 
 
-@api_sbsys_bp.route('/sag/search', methods=['POST'])
+@api_sbsys_bp.route('/erindringer', methods=['GET'])
+def sag_erindringer():
+    try:
+        data = request.get_json()
+    except Exception:
+        data = None
+
+    sag_id = data.get('sag_id') if data else request.args.get('sag_id')
+    if not sag_id:
+        return jsonify({"error": "sag_id (sag id) is required"}), 400
+
+    try:
+        response = sbsys_psag_client.get_erindringer(sag_id)
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@api_sbsys_bp.route('/erindringer/complete', methods=['PUT'])
+def erindringer_complete():
+    try:
+        data = request.get_json()
+    except Exception:
+        data = None
+    erindringer_ids = data if data and isinstance(data, list) else [request.args.get('id')]
+
+    try:
+        erindringer_ids = [int(i) for i in erindringer_ids if i]
+    except Exception:
+        return jsonify({"error": "id (erindring ids) must be integers"}), 400
+
+    if not erindringer_ids:
+        return jsonify({"error": "id (erindring ids) are required, either as id parameter or JSON list of integers as body"}), 400
+
+    results = []
+    for erindring_id in erindringer_ids:
+        success = True
+        try:
+            response = sbsys_psag_client.complete_erindring(erindring_id)
+            if not response:
+                success = False
+        except Exception as e:
+            logger.error(f"An error occurred while completing erindring {erindring_id}: {e}")
+            success = False
+        results.append({"id": erindring_id, "success": success})
+
+    return jsonify(results), 200
+
+
+@api_sbsys_bp.route('/kladder', methods=['GET'])
+def sag_kladder():
+    try:
+        data = request.get_json()
+    except Exception:
+        data = None
+
+    sag_id = data.get('sag_id') if data else request.args.get('sag_id')
+    if not sag_id:
+        return jsonify({"error": "sag_id (sag id) is required"}), 400
+
+    try:
+        response = sbsys_psag_client.get_kladder(sag_id)
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@api_sbsys_bp.route('/kladder/journalize', methods=['PUT'])
+def kladder_journalize():
+    try:
+        data = request.get_json()
+    except Exception:
+        data = None
+    kladder_ids = data if data and isinstance(data, list) else [request.args.get('id')]
+
+    try:
+        kladder_ids = [int(i) for i in kladder_ids if i]
+    except Exception:
+        return jsonify({"error": "id (kladder ids) must be integers"}), 400
+
+    if not kladder_ids:
+        return jsonify({"error": "id (kladder ids) are required, either as id parameter or JSON list of integers as body"}), 400
+
+    results = []
+    for kladde_id in kladder_ids:
+        success = True
+        try:
+            response = sbsys_psag_client.journalize_kladde(kladde_id)
+            if not response:
+                success = False
+        except Exception as e:
+            logger.error(f"An error occurred while journalizing kladde {kladde_id}: {e}")
+            success = False
+        results.append({"id": kladde_id, "success": success})
+
+    return jsonify(results), 200
+
+
+@api_sbsys_bp.route('/sag/search', methods=['POST', 'GET'])
 def sag_search():
     try:
         data = request.get_json()
-
         if not data:
-            return jsonify({"error": "data is required"}), 400
+            return jsonify({"error": "JSON payload is required"}), 400
+    except Exception:
+        return jsonify({"error": "JSON payload is required"}), 400
 
+    try:
         response = sbsys_client.sag_search(payload=data)
-        return response, 200
+        return jsonify(response), 200
     except Exception as e:
-        return e, 500
+        return jsonify({"error": str(e)}), 500
+
+
+@api_sbsys_bp.route('/personalesag', methods=['GET'])
+def get_personalesag():
+    try:
+        data = request.get_json()
+    except Exception:
+        data = None
+
+    cpr = data.get('cpr') if data else request.args.get('cpr')
+    if not cpr:
+        return jsonify({"error": "cpr is required"}), 400
+
+    try:
+        response = sbsys_psag_client.get_personalesag(cpr)
+        if response is None:
+            return jsonify({"error": "No results found"}), 404
+        if not response:
+            return jsonify({"error": "Failed to fetch personalesag"}), 500
+        return response, 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # Returns a files based on Documents name property
