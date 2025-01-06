@@ -8,6 +8,7 @@ from endpoints.nexus_endpoints import api_nexus_bp
 from endpoints.kp_endpoints import api_kp_bp
 from endpoints.sbsys_endpoints import api_sbsys_bp
 from endpoints.sd_endpoints import api_sd_bp
+from endpoints.azure_endpoints import api_azure_bp
 
 
 def create_app():
@@ -19,6 +20,7 @@ def create_app():
     app.register_blueprint(api_kp_bp)
     app.register_blueprint(api_sbsys_bp)
     app.register_blueprint(api_sd_bp)
+    app.register_blueprint(api_azure_bp)
     APP_RUNNING.labels(POD_NAME).set(1)
     return app
 

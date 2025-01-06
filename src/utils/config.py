@@ -51,4 +51,7 @@ SD_INST_ID = os.getenv("SD_INST_ID", "sd-test-inst-id").strip()
 SD_BASIC_AUTH = os.getenv("SD_BASIC_AUTH", "sd-test-basic-auth").strip()
 
 # Azure
+AZURE_CLIENTID = os.environ['AZURE_CLIENTID'].rstrip()
 AZURE_TENANTID = os.environ['AZURE_TENANTID'].rstrip()
+AZURE_CLIENTSECRET = os.environ['AZURE_CLIENTSECRET'].rstrip()
+AZURE_URL = os.environ['AZURE_URL'].rstrip()
