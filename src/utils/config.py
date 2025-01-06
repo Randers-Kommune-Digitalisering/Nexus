@@ -49,3 +49,6 @@ SD_USERNAME = os.getenv("SD_USERNAME", "sd-test-user").strip()
 SD_PASSWORD = os.getenv("SD_PASSWORD", "sd-test-pass").strip()
 SD_INST_ID = os.getenv("SD_INST_ID", "sd-test-inst-id").strip()
 SD_BASIC_AUTH = os.getenv("SD_BASIC_AUTH", "sd-test-basic-auth").strip()
+
+# Azure
+AZURE_TENANTID = os.environ['AZURE_TENANTID'].rstrip()
