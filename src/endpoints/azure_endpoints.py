@@ -1,10 +1,10 @@
 import logging
 from azure.azure_client import AzureClient
 from flask import Blueprint, jsonify
-from utils.config import AZURE_CLIENTID, AZURE_TENANTID, AZURE_CLIENTSECRET, AZURE_URL
+from utils.config import AZURE_CLIENTID, AZURE_TENANTID, AZURE_CLIENTSECRET, AZURE_URL, AZURE_TOKEN_URL
 
 logger = logging.getLogger(__name__)
-azure_client = AzureClient(AZURE_CLIENTID, AZURE_CLIENTSECRET, AZURE_TENANTID, AZURE_URL)
+azure_client = AzureClient(AZURE_CLIENTID, AZURE_CLIENTSECRET, AZURE_TENANTID, AZURE_URL, AZURE_TOKEN_URL)
 
 api_azure_bp = Blueprint('api_azure', __name__, url_prefix='/api/azure')
 

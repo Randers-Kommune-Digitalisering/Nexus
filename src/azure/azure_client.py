@@ -3,7 +3,6 @@ import time
 import requests
 from typing import Dict, Tuple
 from auth_header_api_client import APIClientWithAuthHeaders
-from utils.config import AZURE_TENANTID
 
 logger = logging.getLogger(__name__)
 
@@ -11,27 +10,29 @@ logger = logging.getLogger(__name__)
 class AzureAPIClient(APIClientWithAuthHeaders):
     _client_cache: Dict[Tuple[str, str, str, str], 'AzureAPIClient'] = {}
 
-    def __init__(self, client_id, client_secret, tenant_id, url):
+    def __init__(self, client_id, client_secret, tenant_id, url, token_url):
         super().__init__(url)
         self.client_id = client_id
         self.client_secret = client_secret
         self.tenant_id = tenant_id
+        self.url = url
+        self.token_url = token_url
         self.access_token = None
         self.access_token_expiry = None
         self.refresh_token = None
         self.refresh_token_expiry = None
 
     @classmethod
-    def get_client(cls, client_id, client_secret, tenant_id, url):
+    def get_client(cls, client_id, client_secret, tenant_id, url, token_url):
         key = (client_id, client_secret, tenant_id)
         if key in cls._client_cache:
             return cls._client_cache[key]
-        client = cls(client_id, client_secret, tenant_id, url)
+        client = cls(client_id, client_secret, tenant_id, url, token_url)
         cls._client_cache[key] = client
         return client
 
     def request_access_token(self):
-        token_url = f"https://login.microsoftonline.com/{AZURE_TENANTID}/oauth2/v2.0/token"
+        token_url = f"{self.token_url}/{self.tenant_id}/oauth2/v2.0/token"
         payload = {
             "grant_type": "client_credentials",
             "scope": "https://graph.microsoft.com/.default",
@@ -68,12 +69,12 @@ class AzureAPIClient(APIClientWithAuthHeaders):
 
 
 class AzureClient:
-    def __init__(self, client_id, client_secret, tenant_id, url):
-        self.api_client = AzureAPIClient.get_client(client_id, client_secret, tenant_id, url)
+    def __init__(self, client_id, client_secret, tenant_id, url, token_url):
+        self.api_client = AzureAPIClient.get_client(client_id, client_secret, tenant_id, url, token_url)
 
     def get_all_users(self):
         users = []
-        url = "https://graph.microsoft.com/v1.0/users?$select=displayName,onPremisesSamAccountName,mail"
+        url = f"{self.api_client.url}/v1.0/users?$select=displayName,onPremisesSamAccountName,mail"
         while url:
             response = self.api_client.get(url)
             if response:
