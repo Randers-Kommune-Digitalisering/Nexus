@@ -53,7 +53,7 @@ class KPAPIClient(APIClientWithAuthHeaders):
 
             // Find the option element with the specified text
             const option = (await page.$x(
-                '//*[@id = "SelectedAuthenticationUrl"]/option[contains(text(), "Randers Kommune")]'
+                '//*[@id = "SelectedAuthenticationUrl"]/option[contains(text(), "Randers Kommune NSIS IdP")]'
             ))[0];
 
             // Check if the option was found
@@ -122,6 +122,7 @@ class KPAPIClient(APIClientWithAuthHeaders):
                 data = response.json()
             except requests.exceptions.JSONDecodeError as e:
                 logger.error("Failed to parse JSON response from Browserless: %s", e)
+                logger.debug("Response content: %s", response.content)
 
             # Initialize session_cookie
             session_cookie = None
@@ -200,6 +201,7 @@ class KPAPIClient(APIClientWithAuthHeaders):
 
                 if response.status_code != 200 or 'text/html' in response.headers.get('Content-Type', '').lower():
                     logger.error("Reauthenticating: KP authentication failed with status code %s", response.status_code)
+                    logger.debug("Response content: %s", response.content)
                     retry_authenticate = self.reauthenticate()  # Attempt to fetch new session token
                     if retry_authenticate:
                         return self._retry_request(method, path, **kwargs)  # Retry the request
