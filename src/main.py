@@ -4,12 +4,11 @@ from prometheus_client import generate_latest
 
 from utils.logging import set_logging_configuration, APP_RUNNING
 from utils.config import DEBUG, PORT, POD_NAME
-from job_endpoints import job_api_bp
 from endpoints.nexus_endpoints import api_nexus_bp
 from endpoints.kp_endpoints import api_kp_bp
 from endpoints.sbsys_endpoints import api_sbsys_bp
-# from jobs.nexus_flow_lukning import execute_lukning
-# from kp.kp_client import KPClient
+from endpoints.sd_endpoints import api_sd_bp
+from endpoints.azure_endpoints import api_azure_bp
 
 
 def create_app():
@@ -17,10 +16,11 @@ def create_app():
     health = HealthCheck()
     app.add_url_rule("/healthz", "healthcheck", view_func=lambda: health.run())
     app.add_url_rule('/metrics', "metrics", view_func=generate_latest)
-    app.register_blueprint(job_api_bp)
     app.register_blueprint(api_nexus_bp)
     app.register_blueprint(api_kp_bp)
     app.register_blueprint(api_sbsys_bp)
+    app.register_blueprint(api_sd_bp)
+    app.register_blueprint(api_azure_bp)
     APP_RUNNING.labels(POD_NAME).set(1)
     return app
 

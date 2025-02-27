@@ -2,14 +2,14 @@ import logging
 import time
 import requests
 from typing import Dict, Tuple, List, Optional
-from base_api_client import BaseAPIClient
+from auth_header_api_client import APIClientWithAuthHeaders
 from utils.config import NEXUS_URL, NEXUS_CLIENT_ID, NEXUS_CLIENT_SECRET, NEXUS_TOKEN_ROUTE
 
 logger = logging.getLogger(__name__)
 
 
 # Nexus api client
-class NexusAPIClient(BaseAPIClient):
+class NexusAPIClient(APIClientWithAuthHeaders):
     _client_cache: Dict[Tuple[str, str], 'NexusAPIClient'] = {}
 
     def __init__(self, client_id, client_secret, url):
@@ -77,20 +77,19 @@ class NexusAPIClient(BaseAPIClient):
             logger.error(e)
             return None
 
-    def authenticate(self):
-        if self.access_token and self.access_token_expiry and time.time() < self.access_token_expiry:
-            return self.access_token
-        elif self.refresh_token and self.refresh_token_expiry and time.time() < self.refresh_token_expiry:
-            return self.refresh_access_token()
-        else:
-            return self.request_access_token()
-
     def get_access_token(self):
-        return self.authenticate()
+        if self.access_token and self.access_token_expiry:
+            if time.time() < self.access_token_expiry:
+                return self.access_token
+            else:
+                return self.refresh_access_token()
+        return self.request_access_token()
 
     def get_auth_headers(self):
         token = self.get_access_token()
-        return {"Authorization": f"Bearer {token}"}
+        if token:
+            return {"Authorization": f"Bearer {token}"}
+        return None
 
 
 # Nexus client
@@ -117,7 +116,7 @@ class NexusClient:
 
         if home:
             {'query': query}
-            professionals_link = home['_links']['professionals']['href']
+            professionals_link = home['_links']['importProfessionalFromSts']['href']
             return self.get_request(professionals_link, params={'query': query})
 
     def find_patient_by_query(self, query):
@@ -127,8 +126,6 @@ class NexusClient:
             {'query': query}
             professionals_link = home['_links']['patients']['href']
             return self.get_request(professionals_link, params={'query': query})
-        # path = "api/core/mobile/randers/v2/patients/?query=" + query
-        # return self.api_client.get(path)
 
     def fetch_patient_by_query(self, query):
         try:
@@ -148,9 +145,6 @@ class NexusClient:
             patient_self_response = self.get_request(self_path)
 
             return patient_self_response
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Request failed: {e}")
-            return None
         except KeyError as e:
             logger.error(f"Unexpected response structure: {e}")
             return None
@@ -243,7 +237,7 @@ class NexusRequest:
         # Parse the key from the constructor's input response using link_full
         elif self.input_response and self.link_full:
             final_url = self._get_nested_value(self.input_response, self.link_full)
-            print("Extracted URL from link_full:", final_url)
+            # print("Extracted URL from link_full:", final_url)
 
         # Parse the key from the formal parameter input response using link_href
         elif input_response and '_links' in input_response and self.link_href in input_response['_links']:
@@ -252,7 +246,7 @@ class NexusRequest:
         # Parse the key from the formal parameter input response using link_full
         elif input_response and self.link_full:
             final_url = self._get_nested_value(input_response, self.link_full)
-            print("Extracted URL from link_full:", final_url)
+            # print("Extracted URL from link_full:", final_url)
 
         if not final_url:
             raise ValueError(f"Link '{self.link_href}' not found in the response")

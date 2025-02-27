@@ -2,14 +2,14 @@ import logging
 import time
 import requests
 from typing import Dict, Tuple
-from base_api_client import BaseAPIClient
+from auth_header_api_client import APIClientWithAuthHeaders
 from utils.config import SBSIP_URL
 
 logger = logging.getLogger(__name__)
 
 
 # Sbsys Api Client
-class SbsysAPIClient(BaseAPIClient):
+class SbsysAPIClient(APIClientWithAuthHeaders):
     _client_cache: Dict[Tuple[str, str, str, str], 'SbsysAPIClient'] = {}
 
     def __init__(self, client_id, client_secret, username, password, url):
@@ -57,19 +57,17 @@ class SbsysAPIClient(BaseAPIClient):
             logger.error(e)
             return None
 
-    def authenticate(self):
-        if self.access_token and self.access_token_expiry and time.time() < self.access_token_expiry:
-            return self.access_token
-        else:
-            return self.request_access_token()
-
     def get_access_token(self):
-        return self.authenticate()
+        if self.access_token and self.access_token_expiry:
+            if time.time() < self.access_token_expiry:
+                return self.access_token
+        return self.request_access_token()
 
     def get_auth_headers(self):
         token = self.get_access_token()
-        return {"Content-Type": "application/json",
-                "Authorization": f"Bearer {token}"}
+        if token:
+            return {"Authorization": f"Bearer {token}"}
+        return None
 
 
 class SbsysClient:
@@ -79,6 +77,63 @@ class SbsysClient:
     def sag_search(self, payload):
         path = "api/sag/search"
         return self.api_client.post(path=path, json=payload)
+
+    def get_personalesag(self, cpr):
+        path = "api/sag/search"
+        if "-" not in cpr:
+            cpr = cpr[:6] + "-" + cpr[6:]
+
+        payload = {
+            'PrimaerPerson': {
+                'CprNummer': cpr
+            },
+            'SagsTyper': [
+                {
+                    'Navn': 'PersonaleSag'
+                }
+            ]
+        }
+
+        try:
+            response = self.api_client.post(path=path, json=payload)
+            if not response:
+                logger.warning("No response from SBSYS client")
+                return False
+            if not response['Results']:
+                logger.warning("CPR not found in SBSYS")
+                return None
+            return response['Results']
+
+        except Exception as e:
+            logger.error(f"An error occurred while performing sag_get: {e}")
+            return False
+
+    def set_sag_status(self, sag_id, status_id):
+        path = f"api/sag/{sag_id}/status"
+        return self.api_client.put(path=path, json={"SagsStatusID": status_id, "Kommentar": "Sag lukket automatisk af robot"})
+
+    def get_erindringer(self, sag_id):
+        path = f"api/erindring/sag/{sag_id}"
+        return self.api_client.get(path=path)
+
+    def complete_erindring(self, erindring_id):
+        path = "api/erindring/complete"
+        payload = {
+            "ErindringId": erindring_id,
+            "OpretJournalArkNotat": True
+        }
+        return self.api_client.put(path=path, json=payload)
+
+    def get_kladder(self, sag_id):
+        path = "api/kladde/search"
+        payload = {
+            "SagIds": [sag_id]
+        }
+        return self.api_client.post(path=path, json=payload)
+
+    def journalize_kladde(self, kladde_id):
+        path = f"api/kladde/{kladde_id}/journaliser"
+        return self.api_client.post(path=path, json={})
 
     def fetch_documents(self, sag_id):
         path = f"api/sag/{sag_id}/dokumenter"

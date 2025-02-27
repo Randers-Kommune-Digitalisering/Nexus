@@ -36,4 +36,4 @@ jobs:
           pytest
       - name: Lint with flake8
         run: | 
-          flake8 --ignore=E501 src tests --show-source
+          flake8 --ignore=E501,W504 src tests --show-source

@@ -10,11 +10,6 @@ DEBUG = os.getenv('DEBUG', 'False') in ['True', 'true']
 PORT = os.getenv('PORT', '8080')
 POD_NAME = os.getenv('POD_NAME', 'Pod name not set')
 
-DELTA_TOP_ADM_UNIT_UUID = os.environ['DELTA_TOP_ADM_UNIT_UUID'].strip()
-DELTA_CERT_BASE64 = os.environ['DELTA_CERT_BASE64'].strip()
-DELTA_CERT_PASS = os.environ['DELTA_CERT_PASS'].strip()
-DELTA_BASE_URL = os.environ['DELTA_BASE_URL'].strip()
-
 # NEXUS
 NEXUS_URL = os.environ["NEXUS_URL"].strip()
 NEXUS_CLIENT_ID = os.environ["NEXUS_CLIENT_ID"].strip()
@@ -47,3 +42,17 @@ SBSYS_PASSWORD = os.environ["SBSYS_PASSWORD"].strip()
 BROWSERLESS_URL = os.environ["BROWSERLESS_URL"].strip()
 BROWSERLESS_CLIENT_ID = os.environ["BROWSERLESS_CLIENT_ID"].strip()
 BROWSERLESS_CLIENT_SECRET = os.environ["BROWSERLESS_CLIENT_SECRET"].strip()
+
+# SD
+SD_URL = os.getenv("SD_URL", "https://sd-mock.com").strip()
+SD_USERNAME = os.getenv("SD_USERNAME", "sd-test-user").strip()
+SD_PASSWORD = os.getenv("SD_PASSWORD", "sd-test-pass").strip()
+SD_INST_ID = os.getenv("SD_INST_ID", "sd-test-inst-id").strip()
+SD_BASIC_AUTH = os.getenv("SD_BASIC_AUTH", "sd-test-basic-auth").strip()
+
+# Azure
+AZURE_CLIENTID = os.environ['AZURE_CLIENTID'].rstrip()
+AZURE_TENANTID = os.environ['AZURE_TENANTID'].rstrip()
+AZURE_CLIENTSECRET = os.environ['AZURE_CLIENTSECRET'].rstrip()
+AZURE_URL = os.environ['AZURE_URL'].rstrip()
+AZURE_TOKEN_URL = os.environ['AZURE_TOKEN_URL'].rstrip()
